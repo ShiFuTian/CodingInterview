@@ -8,6 +8,7 @@ package main
 
 import (
 	"bytes"
+	"container/list"
 	"fmt"
 	"log"
 	"strconv"
@@ -20,26 +21,24 @@ type Stack interface {
 }
 
 type IntStack struct {
-	slice []int
+	*list.List
 }
 
 func (i *IntStack) Push(v interface{}) {
-	i.slice = append(i.slice, v.(int))
+	i.PushBack(v)
 }
 
 func (i *IntStack) Pop() interface{} {
-	top := i.slice[len(i.slice)-1]
-	i.slice = i.slice[:len(i.slice)-1]
-	return top
+	return i.Remove(i.Back())
 }
 
 func (i IntStack) String() string {
 	var buf bytes.Buffer
 	buf.WriteString("[")
-	for k, e := range i.slice {
-		a := strconv.Itoa(e) // Here cause special
+	for e := i.Front(); e != nil; e = e.Next() {
+		a := strconv.Itoa(e.Value.(int)) // Here cause special
 		buf.WriteString(a)
-		if k != len(i.slice)-1 {
+		if e != i.Back() {
 			buf.WriteString(" ")
 		}
 	}
@@ -50,7 +49,7 @@ func (i IntStack) String() string {
 func EvalRPN(tokens []string) int {
 	op := "+-*/"
 
-	var s Stack = &IntStack{make([]int, 0)}
+	var s Stack = &IntStack{list.New()}
 
 	for _, v := range tokens {
 		if !strings.Contains(op, v) {
