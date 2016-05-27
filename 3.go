@@ -22,17 +22,20 @@ func IsIsomorphic(s, t string) bool {
 	ref := make(map[byte]byte) // ref[s[i]] = t[i]
 
 	for i := 0; i < len(s); i++ {
-		if c1, ok := ref[s[i]]; !ok { // K not in map
-			for _, c2 := range ref { // V in map?
-				if c2 == t[i] {
-					return false
+		c1 := s[i]
+		c2 := t[i]
+		if v, ok := ref[c1]; ok { // c1 in map
+			if v != c2 {
+				return false // Conflict
+			}
+		} else {
+			for _, v := range ref {
+				if v == c2 {
+					return false // c2 already in map
 				}
 			}
-			ref[s[i]] = t[i] // Add
-		} else if c1 != t[i] { // K in map, but conflict
-			return false
+			ref[c1] = c2 // Insert
 		}
 	}
-
 	return true
 }
