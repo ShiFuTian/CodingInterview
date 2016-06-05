@@ -47,7 +47,7 @@ func (i IntStack) String() string {
 	return buf.String()
 }
 
-func EvalRPN(tokens []string) int {
+func EvalRPN(tokens []string) (int, error) {
 	op := "+-*/"
 
 	var s Stack = &IntStack{make([]int, 0)}
@@ -56,7 +56,7 @@ func EvalRPN(tokens []string) int {
 		if !strings.Contains(op, v) {
 			i, err := strconv.Atoi(v)
 			if err != nil {
-				log.Fatal(err)
+				return 0, fmt.Errorf("EvalRPN(%#v), %v\n", tokens, err)
 			}
 			s.Push(i) // Push int
 		} else {
@@ -75,10 +75,15 @@ func EvalRPN(tokens []string) int {
 		}
 		fmt.Println(s)
 	}
-	return s.Pop().(int)
+	return s.Pop().(int), nil
 }
 
 func main() {
 	tokens := []string{"2", "1", "+", "3", "*"}
-	fmt.Println("Value of", tokens, "is :", EvalRPN(tokens))
+	v, err := EvalRPN(tokens)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Value of", tokens, "is :", v)
+	return
 }
