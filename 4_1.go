@@ -21,28 +21,34 @@ import (
 	"log"
 )
 
+type Queue interface {
+	Enqueue(v interface{})
+	Dequeue() interface{}
+	Empty() bool
+}
+
 type Word struct {
 	val string
-	no  int // Layer of tree(from 1)
+	no  int
 	pre *Word
 }
 
-type Queue struct {
-	slice []interface{}
+type WordQueue struct {
+	slice []Word // Use pointer?
 }
 
-func (q *Queue) Enqueue(v interface{}) {
-	q.slice = append(q.slice, v)
+func (w *WordQueue) Enqueue(v interface{}) {
+	w.slice = append(w.slice, v.(Word))
 }
 
-func (q *Queue) Dequeue() interface{} {
-	v := q.slice[0]
-	q.slice = q.slice[1:]
+func (w *WordQueue) Dequeue() interface{} { // Use Base?
+	v := w.slice[0]
+	w.slice = w.slice[1:]
 	return v
 }
 
-func (q *Queue) Empty() bool {
-	return len(q.slice) == 0
+func (w *WordQueue) Empty() bool { // Use Base?
+	return len(w.slice) == 0
 }
 
 func diffCount(s, t string) int {
@@ -60,19 +66,15 @@ func WordLadders(start, end string, dict []string) (res [][]string) {
 	l := len(start)
 	for _, v := range dict { // Check input
 		if len(v) != l {
-			log.Fatal("Invalid input.")
+			log.Fatal("Invalid input!")
 		}
 	}
 
-	queue := new(Queue)
-	queue.Enqueue(&Word{start, 1, nil})
+	queue := new(WordQueue)
+	queue.Enqueue(Word{start, 1, nil})
 
 	for !queue.Empty() { // BFS
-		word, ok := queue.Dequeue().(*Word)
-		if !ok {
-			log.Fatal("Wrong type.")
-		}
-
+		word := queue.Dequeue().(Word)
 		if word.val == end {
 			re := make([]string, 0, word.no)
 			for {
@@ -80,14 +82,14 @@ func WordLadders(start, end string, dict []string) (res [][]string) {
 				if word.pre == nil {
 					break
 				}
-				word = word.pre
+				word = *word.pre
 			}
 			res = append(res, re)
 		}
 
 		for i, v := range dict {
 			if diffCount(word.val, v) == 1 {
-				queue.Enqueue(&Word{v, word.no + 1, word})
+				queue.Enqueue(Word{v, word.no + 1, &word})
 				if v != end { //
 					dict = append(dict[:i], dict[i+1:]...)
 				}
